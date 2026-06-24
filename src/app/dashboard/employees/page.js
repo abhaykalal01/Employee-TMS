@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/getCurrentUser";
 import { getUsers } from "@/services/userService";
 import { deleteEmployee } from "@/actions/employeeActions";
 import { UserPlus, Users, ShieldCheck, Pencil, Mail, Trash2 } from "lucide-react";
@@ -29,6 +31,11 @@ function initialsOf(name) {
 }
 
 export default async function EmployeesPage() {
+    const user = await getCurrentUser();
+    if (!user || user.role !== "admin") {
+        redirect("/dashboard");
+    }
+
     const users = await getUsers();
     const adminCount = users.filter((u) => (u.role || "").toLowerCase() === "admin").length;
     const employeeCount = users.length - adminCount;

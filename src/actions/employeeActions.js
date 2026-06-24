@@ -1,13 +1,15 @@
 "use server";
 
 import bcrypt from "bcryptjs";
+import mongoose from "mongoose";
 import User from "@/models/User";
 import { connectDB } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { requireAdmin } from "@/lib/auth";
 
 export async function createEmployee(formData) {
-
+    await requireAdmin();
     await connectDB();
 
     const name = (formData.get("name") || "").toString().trim();
@@ -40,19 +42,73 @@ export async function createEmployee(formData) {
     revalidatePath("/dashboard/employees");
     redirect("/dashboard/employees");
 }
-export async function deleteEmployee(formData) {
 
+export async function updateEmployee(formData) {
+    try {
+        await requireAdmin();
+        await connectDB();
+
+        const id = (formData.get("id") || "").toString().trim();
+        const name = (formData.get("name") || "").toString().trim();
+        const email = (formData.get("email") || "").toString().trim().toLowerCase();
+        const role = (formData.get("role") || "employee").toString().trim().toLowerCase();
+
+        if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+            throw new Error("Invalid employee id.");
+        }
+
+        if (!name || !email) {
+            throw new Error("Name and email are required.");
+        }
+
+        if (!["admin", "employee"].includes(role)) {
+            throw new Error("Invalid role selected.");
+        }
+
+        const objectId = new mongoose.Types.ObjectId(id);
+
+        const existingUser = await User.findOne({
+            email,
+            _id: { $ne: objectId },
+        });
+
+        if (existingUser) {
+            throw new Error("An account with this email already exists.");
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(
+            objectId,
+            { name, email, role },
+            { new: true }
+        );
+
+        if (!updatedUser) {
+            throw new Error("Employee not found.");
+        }
+
+        revalidatePath("/dashboard/employees");
+        revalidatePath(`/dashboard/employees/${id}/edit`);
+        redirect("/dashboard/employees");
+    } catch (error) {
+        if (error?.digest?.startsWith("NEXT_REDIRECT")) {
+            throw error;
+        }
+        console.error("Update employee error:", error);
+        throw error;
+    }
+}
+
+export async function deleteEmployee(formData) {
+    await requireAdmin();
     await connectDB();
 
-    const id =
-        formData.get("id");
+    const id = (formData.get("id") || "").toString();
 
-    await User.findByIdAndDelete(
-        id
-    );
+    if (!id) {
+        throw new Error("Employee id is required.");
+    }
 
-    revalidatePath(
-        "/dashboard/employees"
-    );
+    await User.findByIdAndDelete(id);
 
+    revalidatePath("/dashboard/employees");
 }

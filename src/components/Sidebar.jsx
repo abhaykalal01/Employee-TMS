@@ -9,22 +9,21 @@ import {
     PlusCircle,
     User,
     Users,
-    UserPlus,
     BarChart3,
     Settings,
     X,
 } from "lucide-react";
+import { getSidebarItems } from "@/lib/getSidebarItems";
 
-const navItems = [
-    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/dashboard/tasks", label: "Tasks", icon: CheckSquare },
-    { href: "/dashboard/tasks/create", label: "Create Task", icon: PlusCircle },
-    { href: "/dashboard/settings/profile", label: "Profile", icon: User },
-    { href: "/dashboard/employees", label: "Employees", icon: Users },
-    { href: "/dashboard/employees/create", label: "Create Employee", icon: UserPlus },
-    { href: "/dashboard/reports", label: "Reports", icon: BarChart3 },
-    { href: "/dashboard/settings", label: "Settings", icon: Settings },
-];
+const iconMap = {
+    LayoutDashboard,
+    CheckSquare,
+    PlusCircle,
+    User,
+    Users,
+    BarChart3,
+    Settings,
+};
 
 const colors = {
     bg: "linear-gradient(180deg, #14141f, #0d0d16)",
@@ -36,9 +35,10 @@ const colors = {
     hoverBg: "rgba(255,255,255,0.05)",
 };
 
-export default function Sidebar() {
+export default function Sidebar({ role = "employee" }) {
     const pathname = usePathname();
     const [isOpen, setIsOpen] = useState(false);
+    const navItems = useMemo(() => getSidebarItems(role), [role]);
 
     useEffect(() => {
         const handleToggle = () => setIsOpen((open) => !open);
@@ -64,7 +64,7 @@ export default function Sidebar() {
         () =>
             navItems.map((item) => {
                 const isActive = pathname === item.href;
-                const Icon = item.icon;
+                const Icon = iconMap[item.icon] || LayoutDashboard;
                 return (
                     <Link
                         key={item.href}
@@ -96,7 +96,7 @@ export default function Sidebar() {
                     </Link>
                 );
             }),
-        [closeSidebar, pathname]
+        [closeSidebar, navItems, pathname]
     );
 
     return (
@@ -152,6 +152,9 @@ export default function Sidebar() {
                 >
                     <p style={{ fontSize: "11px", color: colors.textMuted, margin: 0 }}>
                         Employee TMS · v1.0
+                    </p>
+                    <p style={{ fontSize: "10px", color: colors.textMuted, margin: "4px 0 0", textTransform: "capitalize" }}>
+                        Role: {role}
                     </p>
                 </div>
             </aside>

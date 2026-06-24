@@ -1,6 +1,9 @@
 import SubmitButton from "@/components/SubmitButton";
 import { createTask } from "@/actions/taskActions";
-import { ClipboardList, Flag, ListTodo } from "lucide-react";
+import { getEmployees } from "@/services/userService";
+import { getCurrentUser } from "@/lib/getCurrentUser";
+import { redirect } from "next/navigation";
+import { ClipboardList, Flag, ListTodo, User } from "lucide-react";
 
 const c = {
     bg: "#0a0a12",
@@ -14,17 +17,21 @@ const c = {
     accentTo: "#2563eb",
 };
 
-export default function CreateTaskPage() {
+export default async function CreateTaskPage() {
+    const user = await getCurrentUser();
+    if (!user || user.role !== "admin") {
+        redirect("/dashboard");
+    }
+
+    const employees = await getEmployees();
+
     return (
         <div style={{ background: c.bg, minHeight: "100vh", color: c.text }}>
             <div style={{ maxWidth: "640px", margin: "0 auto", padding: "28px 20px 64px" }}>
-
-                {/* Breadcrumb */}
                 <div style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "0.12em", color: c.textMuted, marginBottom: "12px" }}>
                     DASHBOARD&nbsp;/&nbsp;TASKS&nbsp;/&nbsp;<span style={{ color: "#c4b5fd" }}>CREATE</span>
                 </div>
 
-                {/* Header */}
                 <div style={{ marginBottom: "24px", display: "flex", alignItems: "flex-start", gap: "14px" }}>
                     <div
                         style={{
@@ -46,12 +53,11 @@ export default function CreateTaskPage() {
                             Create Task
                         </h1>
                         <p style={{ fontSize: "13px", color: c.textSecondary, marginTop: "4px" }}>
-                            Add task details and choose a status to start tracking work instantly.
+                            Create a task and assign it to an employee.
                         </p>
                     </div>
                 </div>
 
-                {/* Form card */}
                 <form
                     action={createTask}
                     style={{
@@ -62,11 +68,19 @@ export default function CreateTaskPage() {
                     }}
                 >
                     <div style={{ padding: "24px", display: "flex", flexDirection: "column", gap: "20px" }}>
+                        <Field
+                            icon={<ListTodo size={13} />}
+                            label="Task Title"
+                            name="title"
+                            type="text"
+                            placeholder="e.g. Fix login redirect bug"
+                            required
+                            hint="Keep it short and specific — this is what shows up in task lists."
+                        />
 
-                        {/* Title */}
                         <div>
                             <label
-                                htmlFor="title"
+                                htmlFor="assignedTo"
                                 style={{
                                     display: "flex",
                                     alignItems: "center",
@@ -79,12 +93,11 @@ export default function CreateTaskPage() {
                                     marginBottom: "8px",
                                 }}
                             >
-                                <ListTodo size={13} /> Task Title
+                                <User size={13} /> Assign To Employee
                             </label>
-                            <input
-                                id="title"
-                                name="title"
-                                placeholder="e.g. Fix login redirect bug"
+                            <select
+                                id="assignedTo"
+                                name="assignedTo"
                                 required
                                 style={{
                                     width: "100%",
@@ -97,13 +110,19 @@ export default function CreateTaskPage() {
                                     outline: "none",
                                     boxSizing: "border-box",
                                 }}
-                            />
+                            >
+                                <option value="">Select employee…</option>
+                                {employees.map((employee) => (
+                                    <option key={employee._id} value={employee._id}>
+                                        {employee.name} ({employee.email})
+                                    </option>
+                                ))}
+                            </select>
                             <p style={{ fontSize: "12px", color: c.textMuted, marginTop: "6px" }}>
-                                Keep it short and specific — this is what shows up in task lists and reports.
+                                Only employees with role &quot;employee&quot; are listed.
                             </p>
                         </div>
 
-                        {/* Status */}
                         <div>
                             <label
                                 htmlFor="status"
@@ -121,36 +140,29 @@ export default function CreateTaskPage() {
                             >
                                 <Flag size={13} /> Status
                             </label>
-                            <div style={{ position: "relative" }}>
-                                <select
-                                    id="status"
-                                    name="status"
-                                    defaultValue="Pending"
-                                    style={{
-                                        width: "100%",
-                                        background: c.field,
-                                        border: `1px solid ${c.border}`,
-                                        borderRadius: "10px",
-                                        padding: "12px 14px",
-                                        fontSize: "14px",
-                                        color: c.text,
-                                        outline: "none",
-                                        appearance: "none",
-                                        boxSizing: "border-box",
-                                    }}
-                                >
-                                    <option value="Pending">Pending</option>
-                                    <option value="In Progress">In Progress</option>
-                                    <option value="Completed">Completed</option>
-                                </select>
-                            </div>
-                            <p style={{ fontSize: "12px", color: c.textMuted, marginTop: "6px" }}>
-                                You can change this anytime from the task list.
-                            </p>
+                            <select
+                                id="status"
+                                name="status"
+                                defaultValue="Pending"
+                                style={{
+                                    width: "100%",
+                                    background: c.field,
+                                    border: `1px solid ${c.border}`,
+                                    borderRadius: "10px",
+                                    padding: "12px 14px",
+                                    fontSize: "14px",
+                                    color: c.text,
+                                    outline: "none",
+                                    boxSizing: "border-box",
+                                }}
+                            >
+                                <option value="Pending">Pending</option>
+                                <option value="In Progress">In Progress</option>
+                                <option value="Completed">Completed</option>
+                            </select>
                         </div>
                     </div>
 
-                    {/* Actions */}
                     <div
                         style={{
                             borderTop: `1px solid ${c.border}`,
@@ -164,6 +176,50 @@ export default function CreateTaskPage() {
                     </div>
                 </form>
             </div>
+        </div>
+    );
+}
+
+function Field({ icon, label, name, type, placeholder, required, hint }) {
+    return (
+        <div>
+            <label
+                htmlFor={name}
+                style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    fontSize: "12px",
+                    fontWeight: 700,
+                    letterSpacing: "0.04em",
+                    color: "#9ca3af",
+                    textTransform: "uppercase",
+                    marginBottom: "8px",
+                }}
+            >
+                {icon} {label}
+            </label>
+            <input
+                id={name}
+                name={name}
+                type={type}
+                placeholder={placeholder}
+                required={required}
+                style={{
+                    width: "100%",
+                    background: "#1b1b29",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    borderRadius: "10px",
+                    padding: "12px 14px",
+                    fontSize: "14px",
+                    color: "#f3f4f6",
+                    outline: "none",
+                    boxSizing: "border-box",
+                }}
+            />
+            {hint && (
+                <p style={{ fontSize: "12px", color: "#54565f", marginTop: "6px" }}>{hint}</p>
+            )}
         </div>
     );
 }

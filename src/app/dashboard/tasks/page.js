@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/getCurrentUser";
 import { getTasks } from "@/services/taskService";
 import { deleteTask } from "@/actions/taskActions";
 import { Plus, Inbox, CheckCircle2, Circle, Pencil, Trash2 } from "lucide-react";
@@ -20,6 +22,11 @@ const statusStyle = {
 };
 
 export default async function TasksPage() {
+    const user = await getCurrentUser();
+    if (!user || user.role !== "admin") {
+        redirect("/dashboard/my-tasks");
+    }
+
     const tasks = await getTasks();
     const completedCount = tasks.filter((t) => t.status === "Completed").length;
     const pendingCount = tasks.length - completedCount;
@@ -120,7 +127,7 @@ export default async function TasksPage() {
                                 <table style={{ width: "100%", borderCollapse: "collapse", minWidth: "640px" }}>
                                     <thead>
                                         <tr style={{ borderBottom: `1px solid ${c.border}` }}>
-                                            {["TASK", "STATUS", ""].map((h) => (
+                                            {["TASK", "ASSIGNEE", "STATUS", ""].map((h) => (
                                                 <th
                                                     key={h}
                                                     style={{
@@ -147,6 +154,9 @@ export default async function TasksPage() {
                                                 <tr key={taskId || idx} style={{ borderBottom: `1px solid ${c.border}` }}>
                                                     <td style={{ padding: "16px 20px", fontSize: "14px", fontWeight: 600, color: c.text }}>
                                                         {task.title}
+                                                    </td>
+                                                    <td style={{ padding: "16px 20px", fontSize: "13px", color: c.textSecondary, whiteSpace: "nowrap" }}>
+                                                        {task.assignedTo?.name || "Unassigned"}
                                                     </td>
                                                     <td style={{ padding: "16px 20px", whiteSpace: "nowrap" }}>
                                                         <span
@@ -250,6 +260,10 @@ export default async function TasksPage() {
                                                     <StatusIcon size={11} /> {task.status}
                                                 </span>
                                             </div>
+
+                                            <p style={{ fontSize: "12px", color: c.textSecondary, margin: "4px 0 0" }}>
+                                                Assigned to: {task.assignedTo?.name || "Unassigned"}
+                                            </p>
 
                                             <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
                                                 <Link
