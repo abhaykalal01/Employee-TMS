@@ -15,14 +15,14 @@ import {
 } from "lucide-react";
 
 const c = {
-    bg: "#0a0a12",
-    surface: "#13131e",
-    border: "rgba(255,255,255,0.07)",
-    text: "#f3f4f6",
-    textSecondary: "#9295a3",
-    textMuted: "#54565f",
-    accentFrom: "#7c3aed",
-    accentTo: "#2563eb",
+    bg: "var(--app-bg)",
+    surface: "var(--app-surface)",
+    border: "var(--app-border)",
+    text: "var(--app-text)",
+    textSecondary: "var(--app-text-secondary)",
+    textMuted: "var(--app-text-muted)",
+    accentFrom: "var(--accent-from)",
+    accentTo: "var(--accent-to)",
 };
 
 export default async function DashboardPage() {
@@ -51,7 +51,7 @@ async function AdminDashboard() {
     const recentTasks = tasks.slice(0, 5);
 
     return (
-        <div style={{ background: c.bg, minHeight: "100vh", color: c.text }}>
+        <div styletujhasshas={{ background: c.bg, minHeight: "100vh", color: c.text }}>
             <div style={{ maxWidth: "1120px", margin: "0 auto", padding: "28px 20px 64px" }}>
                 <Header
                     title="Admin Dashboard"

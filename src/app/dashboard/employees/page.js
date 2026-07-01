@@ -1,19 +1,19 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/getCurrentUser";
-import { getUsers } from "@/services/userService";
+import { getUsersPaginated } from "@/services/userService";
 import { deleteEmployee } from "@/actions/employeeActions";
-import { UserPlus, Users, ShieldCheck, Pencil, Mail, Trash2 } from "lucide-react";
+import { UserPlus, Users, ShieldCheck, Pencil, Mail, Trash2, Search } from "lucide-react";
 
 const c = {
-    bg: "#0a0a12",
-    surface: "#13131e",
-    border: "rgba(255,255,255,0.07)",
-    text: "#f3f4f6",
-    textSecondary: "#9295a3",
-    textMuted: "#54565f",
-    accentFrom: "#7c3aed",
-    accentTo: "#2563eb",
+    bg: "var(--app-bg)",
+    surface: "var(--app-surface)",
+    border: "var(--app-border)",
+    text: "var(--app-text)",
+    textSecondary: "var(--app-text-secondary)",
+    textMuted: "var(--app-text-muted)",
+    accentFrom: "var(--accent-from)",
+    accentTo: "var(--accent-to)",
 };
 
 const roleTone = {
@@ -30,13 +30,27 @@ function initialsOf(name) {
         .toUpperCase();
 }
 
-export default async function EmployeesPage() {
+export default async function EmployeesPage({
+    searchParams,
+}) {
     const user = await getCurrentUser();
     if (!user || user.role !== "admin") {
         redirect("/dashboard");
     }
 
-    const users = await getUsers();
+    const resolvedSearchParams = await searchParams;
+    const page = Number(resolvedSearchParams?.page || 1);
+    const searchTerm = (resolvedSearchParams?.search || "").toString().trim();
+    const {
+        users,
+        totalPages,
+        currentPage,
+        total,
+    } = await getUsersPaginated({
+        page,
+        limit: 5,
+        search: searchTerm,
+    });
     const adminCount = users.filter((u) => (u.role || "").toLowerCase() === "admin").length;
     const employeeCount = users.length - adminCount;
 
@@ -63,29 +77,68 @@ export default async function EmployeesPage() {
                             Employees
                         </h1>
                         <p style={{ fontSize: "13px", color: c.textSecondary, marginTop: "4px" }}>
-                            {users.length} total · {adminCount} admin · {employeeCount} employee
+                            {searchTerm
+                                ? `${total} match${total === 1 ? "" : "es"} for "${searchTerm}"`
+                                : `${total} total · ${adminCount} admin · ${employeeCount} employee`}
                         </p>
                     </div>
 
-                    <Link
-                        href="/dashboard/employees/create"
-                        style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: "7px",
-                            background: `linear-gradient(135deg, ${c.accentFrom}, ${c.accentTo})`,
-                            color: "#fff",
-                            fontSize: "13px",
-                            fontWeight: 600,
-                            borderRadius: "9px",
-                            padding: "10px 18px",
-                            textDecoration: "none",
-                            boxShadow: "0 8px 20px -8px rgba(124,58,237,0.5)",
-                            whiteSpace: "nowrap",
-                        }}
-                    >
-                        <UserPlus size={15} /> Add Employee
-                    </Link>
+                    <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "10px" }}>
+                        <form action="/dashboard/employees" method="get" style={{ display: "flex", alignItems: "center", gap: "8px", background: c.surface, border: `1px solid ${c.border}`, borderRadius: "10px", padding: "7px 10px" }}>
+                            <input
+                                type="text"
+                                name="search"
+                                defaultValue={searchTerm}
+                                placeholder="Search name or email"
+                                style={{
+                                    background: "transparent",
+                                    border: "none",
+                                    outline: "none",
+                                    color: c.text,
+                                    fontSize: "13px",
+                                    minWidth: "180px",
+                                }}
+                            />
+                            <input type="hidden" name="page" value="1" />
+                            <button
+                                type="submit"
+                                style={{
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    gap: "6px",
+                                    border: "none",
+                                    borderRadius: "8px",
+                                    background: `linear-gradient(135deg, ${c.accentFrom}, ${c.accentTo})`,
+                                    color: "#fff",
+                                    padding: "8px 10px",
+                                    cursor: "pointer",
+                                }}
+                            >
+                                <Search size={14} />
+                            </button>
+                        </form>
+
+                        <Link
+                            href="/dashboard/employees/create"
+                            style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "7px",
+                                background: `linear-gradient(135deg, ${c.accentFrom}, ${c.accentTo})`,
+                                color: "#fff",
+                                fontSize: "13px",
+                                fontWeight: 600,
+                                borderRadius: "9px",
+                                padding: "10px 18px",
+                                textDecoration: "none",
+                                boxShadow: "0 8px 20px -8px rgba(124,58,237,0.5)",
+                                whiteSpace: "nowrap",
+                            }}
+                        >
+                            <UserPlus size={15} /> Add Employee
+                        </Link>
+                    </div>
                 </div>
 
                 {/* ============ STAT STRIP ============ */}
@@ -124,9 +177,11 @@ export default async function EmployeesPage() {
                             >
                                 <Users size={22} color={c.textMuted} />
                             </div>
-                            <p style={{ fontSize: "15px", fontWeight: 600, color: c.text, margin: 0 }}>No employees yet</p>
+                            <p style={{ fontSize: "15px", fontWeight: 600, color: c.text, margin: 0 }}>
+                                {searchTerm ? `No employees match "${searchTerm}"` : "No employees yet"}
+                            </p>
                             <p style={{ fontSize: "13px", color: c.textSecondary, marginTop: "6px" }}>
-                                Add your first team member to start assigning work.
+                                {searchTerm ? "Try another search term or clear the filter." : "Add your first team member to start assigning work."}
                             </p>
                             <Link
                                 href="/dashboard/employees/create"
@@ -375,6 +430,92 @@ export default async function EmployeesPage() {
                             </div>
                         </>
                     )}
+                    {totalPages > 1 && (
+                        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: "12px", padding: "16px 20px 20px", borderTop: `1px solid ${c.border}` }}>
+                            <div style={{ fontSize: "12px", color: c.textSecondary }}>
+                                Page {currentPage} of {totalPages}
+                            </div>
+                            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center" }}>
+                                <Link
+                                    href={buildPageHref(searchTerm, Math.max(1, currentPage - 1))}
+                                    style={{
+                                        display: "inline-flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        minWidth: "84px",
+                                        borderRadius: "9px",
+                                        border: `1px solid ${c.border}`,
+                                        padding: "8px 12px",
+                                        color: currentPage === 1 ? c.textMuted : c.text,
+                                        textDecoration: "none",
+                                        fontSize: "13px",
+                                        fontWeight: 600,
+                                        background: currentPage === 1 ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.06)",
+                                        cursor: currentPage === 1 ? "not-allowed" : "pointer",
+                                        pointerEvents: currentPage === 1 ? "none" : "auto",
+                                    }}
+                                >
+                                    Previous
+                                </Link>
+
+                                {getVisiblePages(totalPages, currentPage).map((pageNumber, index) => {
+                                    if (pageNumber === "ellipsis") {
+                                        return (
+                                            <span key={`ellipsis-${index}`} style={{ color: c.textMuted, fontSize: "13px", padding: "0 2px" }}>
+                                                ...
+                                            </span>
+                                        );
+                                    }
+
+                                    const isActive = pageNumber === currentPage;
+                                    return (
+                                        <Link
+                                            key={pageNumber}
+                                            href={buildPageHref(searchTerm, pageNumber)}
+                                            style={{
+                                                display: "inline-flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                minWidth: "36px",
+                                                borderRadius: "9px",
+                                                border: isActive ? `1px solid rgba(124,58,237,0.4)` : `1px solid ${c.border}`,
+                                                padding: "8px 10px",
+                                                color: isActive ? "#fff" : c.text,
+                                                background: isActive ? `linear-gradient(135deg, ${c.accentFrom}, ${c.accentTo})` : "rgba(255,255,255,0.05)",
+                                                textDecoration: "none",
+                                                fontSize: "13px",
+                                                fontWeight: 700,
+                                            }}
+                                        >
+                                            {pageNumber}
+                                        </Link>
+                                    );
+                                })}
+
+                                <Link
+                                    href={buildPageHref(searchTerm, Math.min(totalPages, currentPage + 1))}
+                                    style={{
+                                        display: "inline-flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        minWidth: "72px",
+                                        borderRadius: "9px",
+                                        border: `1px solid ${c.border}`,
+                                        padding: "8px 12px",
+                                        color: currentPage === totalPages ? c.textMuted : c.text,
+                                        textDecoration: "none",
+                                        fontSize: "13px",
+                                        fontWeight: 600,
+                                        background: currentPage === totalPages ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.06)",
+                                        cursor: currentPage === totalPages ? "not-allowed" : "pointer",
+                                        pointerEvents: currentPage === totalPages ? "none" : "auto",
+                                    }}
+                                >
+                                    Next
+                                </Link>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -389,6 +530,44 @@ export default async function EmployeesPage() {
       `}</style>
         </div>
     );
+}
+
+function buildPageHref(searchTerm, pageNumber) {
+    const params = new URLSearchParams();
+
+    if (searchTerm) {
+        params.set("search", searchTerm);
+    }
+
+    params.set("page", String(pageNumber));
+
+    return `/dashboard/employees?${params.toString()}`;
+}
+
+function getVisiblePages(totalPages, currentPage) {
+    if (totalPages <= 5) {
+        return Array.from({ length: totalPages }, (_, index) => index + 1);
+    }
+
+    const pages = [];
+    const visibleStart = Math.max(1, currentPage - 1);
+    const visibleEnd = Math.min(totalPages, currentPage + 1);
+
+    if (visibleStart > 1) {
+        pages.push(1, "ellipsis");
+    } else {
+        pages.push(1);
+    }
+
+    for (let pageNumber = visibleStart; pageNumber <= visibleEnd; pageNumber += 1) {
+        pages.push(pageNumber);
+    }
+
+    if (visibleEnd < totalPages) {
+        pages.push("ellipsis", totalPages);
+    }
+
+    return pages.filter((pageNumber, index, array) => array.indexOf(pageNumber) === index);
 }
 
 function Stat({ icon: Icon, label, value, tone }) {

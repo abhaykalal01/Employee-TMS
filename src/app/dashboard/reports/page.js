@@ -5,12 +5,12 @@ import { getUsers, getEmployeeCount } from "@/services/userService";
 import { Users, ListChecks, Clock, CheckCircle2, BarChart3 } from "lucide-react";
 
 const c = {
-    bg: "#0a0a12",
-    surface: "#13131e",
-    border: "rgba(255,255,255,0.07)",
-    text: "#f3f4f6",
-    textSecondary: "#9295a3",
-    textMuted: "#54565f",
+    bg: "var(--app-bg)",
+    surface: "var(--app-surface)",
+    border: "var(--app-border)",
+    text: "var(--app-text)",
+    textSecondary: "var(--app-text-secondary)",
+    textMuted: "var(--app-text-muted)",
 };
 
 export default async function ReportsPage() {

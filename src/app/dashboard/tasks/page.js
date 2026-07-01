@@ -1,19 +1,19 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/getCurrentUser";
-import { getTasks } from "@/services/taskService";
+import { getTasksPaginated } from "@/services/taskService";
 import { deleteTask } from "@/actions/taskActions";
-import { Plus, Inbox, CheckCircle2, Circle, Pencil, Trash2 } from "lucide-react";
+import { Plus, Inbox, CheckCircle2, Circle, Pencil, Trash2, Search } from "lucide-react";
 
 const c = {
-    bg: "#0a0a12",
-    surface: "#13131e",
-    border: "rgba(255,255,255,0.07)",
-    text: "#f3f4f6",
-    textSecondary: "#9295a3",
-    textMuted: "#54565f",
-    accentFrom: "#7c3aed",
-    accentTo: "#2563eb",
+    bg: "var(--app-bg)",
+    surface: "var(--app-surface)",
+    border: "var(--app-border)",
+    text: "var(--app-text)",
+    textSecondary: "var(--app-text-secondary)",
+    textMuted: "var(--app-text-muted)",
+    accentFrom: "var(--accent-from)",
+    accentTo: "var(--accent-to)",
 };
 
 const statusStyle = {
@@ -21,21 +21,26 @@ const statusStyle = {
     Pending: { fg: "#fcd34d", bg: "rgba(245,158,11,0.12)", border: "rgba(245,158,11,0.3)", icon: Circle },
 };
 
-export default async function TasksPage() {
+export default async function TasksPage({ searchParams }) {
     const user = await getCurrentUser();
     if (!user || user.role !== "admin") {
         redirect("/dashboard/my-tasks");
     }
 
-    const tasks = await getTasks();
+    const resolvedSearchParams = await searchParams;
+    const page = Number(resolvedSearchParams?.page || 1);
+    const searchTerm = (resolvedSearchParams?.search || "").toString().trim();
+    const { tasks, total, totalPages, currentPage } = await getTasksPaginated({
+        page,
+        limit: 6,
+        search: searchTerm,
+    });
     const completedCount = tasks.filter((t) => t.status === "Completed").length;
     const pendingCount = tasks.length - completedCount;
 
     return (
         <div style={{ background: c.bg, minHeight: "100vh", color: c.text }}>
             <div style={{ maxWidth: "1120px", margin: "0 auto", padding: "28px 20px 48px" }}>
-
-                {/* ============ HEADER ============ */}
                 <div
                     style={{
                         display: "flex",
@@ -54,32 +59,70 @@ export default async function TasksPage() {
                             All Tasks
                         </h1>
                         <p style={{ fontSize: "13px", color: c.textSecondary, marginTop: "4px" }}>
-                            {tasks.length} total · {completedCount} completed · {pendingCount} pending
+                            {searchTerm
+                                ? `${total} match${total === 1 ? "" : "es"} for "${searchTerm}"`
+                                : `${total} total · ${completedCount} completed · ${pendingCount} pending`}
                         </p>
                     </div>
 
-                    <Link
-                        href="/dashboard/tasks/create"
-                        style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: "7px",
-                            background: `linear-gradient(135deg, ${c.accentFrom}, ${c.accentTo})`,
-                            color: "#fff",
-                            fontSize: "13px",
-                            fontWeight: 600,
-                            borderRadius: "9px",
-                            padding: "10px 18px",
-                            textDecoration: "none",
-                            boxShadow: "0 8px 20px -8px rgba(124,58,237,0.5)",
-                            whiteSpace: "nowrap",
-                        }}
-                    >
-                        <Plus size={15} /> Create Task
-                    </Link>
+                    <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "10px" }}>
+                        <form action="/dashboard/tasks" method="get" style={{ display: "flex", alignItems: "center", gap: "8px", background: c.surface, border: `1px solid ${c.border}`, borderRadius: "10px", padding: "7px 10px" }}>
+                            <input
+                                type="text"
+                                name="search"
+                                defaultValue={searchTerm}
+                                placeholder="Search task title"
+                                style={{
+                                    background: "transparent",
+                                    border: "none",
+                                    outline: "none",
+                                    color: c.text,
+                                    fontSize: "13px",
+                                    minWidth: "180px",
+                                }}
+                            />
+                            <input type="hidden" name="page" value="1" />
+                            <button
+                                type="submit"
+                                style={{
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    gap: "6px",
+                                    border: "none",
+                                    borderRadius: "8px",
+                                    background: `linear-gradient(135deg, ${c.accentFrom}, ${c.accentTo})`,
+                                    color: "#fff",
+                                    padding: "8px 10px",
+                                    cursor: "pointer",
+                                }}
+                            >
+                                <Search size={14} />
+                            </button>
+                        </form>
+
+                        <Link
+                            href="/dashboard/tasks/create"
+                            style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "7px",
+                                background: `linear-gradient(135deg, ${c.accentFrom}, ${c.accentTo})`,
+                                color: "#fff",
+                                fontSize: "13px",
+                                fontWeight: 600,
+                                borderRadius: "9px",
+                                padding: "10px 18px",
+                                textDecoration: "none",
+                                boxShadow: "0 8px 20px -8px rgba(124,58,237,0.5)",
+                                whiteSpace: "nowrap",
+                            }}
+                        >
+                            <Plus size={15} /> Create Task
+                        </Link>
+                    </div>
                 </div>
 
-                {/* ============ TASKS PANEL ============ */}
                 <div style={{ background: c.surface, border: `1px solid ${c.border}`, borderRadius: "14px", overflow: "hidden" }}>
                     {tasks.length === 0 ? (
                         <div style={{ textAlign: "center", padding: "64px 24px" }}>
@@ -97,9 +140,11 @@ export default async function TasksPage() {
                             >
                                 <Inbox size={22} color={c.textMuted} />
                             </div>
-                            <p style={{ fontSize: "15px", fontWeight: 600, color: c.text, margin: 0 }}>No tasks yet</p>
+                            <p style={{ fontSize: "15px", fontWeight: 600, color: c.text, margin: 0 }}>
+                                {searchTerm ? `No tasks match "${searchTerm}"` : "No tasks yet"}
+                            </p>
                             <p style={{ fontSize: "13px", color: c.textSecondary, marginTop: "6px" }}>
-                                Create your first task to get the team moving.
+                                {searchTerm ? "Try a different title or clear the filter." : "Create your first task to get the team moving."}
                             </p>
                             <Link
                                 href="/dashboard/tasks/create"
@@ -122,7 +167,6 @@ export default async function TasksPage() {
                         </div>
                     ) : (
                         <>
-                            {/* ---- Desktop / tablet: table ---- */}
                             <div className="tasks-table-wrap" style={{ overflowX: "auto" }}>
                                 <table style={{ width: "100%", borderCollapse: "collapse", minWidth: "640px" }}>
                                     <thead>
@@ -226,7 +270,6 @@ export default async function TasksPage() {
                                 </table>
                             </div>
 
-                            {/* ---- Mobile: stacked cards (shown only below sm breakpoint via CSS) ---- */}
                             <div className="tasks-card-wrap">
                                 {tasks.map((task, idx) => {
                                     const taskId = task._id?.toString();
@@ -316,6 +359,93 @@ export default async function TasksPage() {
                         </>
                     )}
                 </div>
+
+                {totalPages > 1 && (
+                    <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: "12px", padding: "16px 20px 20px", borderTop: `1px solid ${c.border}` }}>
+                        <div style={{ fontSize: "12px", color: c.textSecondary }}>
+                            Page {currentPage} of {totalPages}
+                        </div>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", alignItems: "center" }}>
+                            <Link
+                                href={buildPageHref(searchTerm, Math.max(1, currentPage - 1))}
+                                style={{
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    minWidth: "84px",
+                                    borderRadius: "9px",
+                                    border: `1px solid ${c.border}`,
+                                    padding: "8px 12px",
+                                    color: currentPage === 1 ? c.textMuted : c.text,
+                                    textDecoration: "none",
+                                    fontSize: "13px",
+                                    fontWeight: 600,
+                                    background: currentPage === 1 ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.06)",
+                                    cursor: currentPage === 1 ? "not-allowed" : "pointer",
+                                    pointerEvents: currentPage === 1 ? "none" : "auto",
+                                }}
+                            >
+                                Previous
+                            </Link>
+
+                            {getVisiblePages(totalPages, currentPage).map((pageNumber, index) => {
+                                if (pageNumber === "ellipsis") {
+                                    return (
+                                        <span key={`ellipsis-${index}`} style={{ color: c.textMuted, fontSize: "13px", padding: "0 2px" }}>
+                                            ...
+                                        </span>
+                                    );
+                                }
+
+                                const isActive = pageNumber === currentPage;
+                                return (
+                                    <Link
+                                        key={pageNumber}
+                                        href={buildPageHref(searchTerm, pageNumber)}
+                                        style={{
+                                            display: "inline-flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            minWidth: "36px",
+                                            borderRadius: "9px",
+                                            border: isActive ? `1px solid rgba(124,58,237,0.4)` : `1px solid ${c.border}`,
+                                            padding: "8px 10px",
+                                            color: isActive ? "#fff" : c.text,
+                                            background: isActive ? `linear-gradient(135deg, ${c.accentFrom}, ${c.accentTo})` : "rgba(255,255,255,0.05)",
+                                            textDecoration: "none",
+                                            fontSize: "13px",
+                                            fontWeight: 700,
+                                        }}
+                                    >
+                                        {pageNumber}
+                                    </Link>
+                                );
+                            })}
+
+                            <Link
+                                href={buildPageHref(searchTerm, Math.min(totalPages, currentPage + 1))}
+                                style={{
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    minWidth: "72px",
+                                    borderRadius: "9px",
+                                    border: `1px solid ${c.border}`,
+                                    padding: "8px 12px",
+                                    color: currentPage === totalPages ? c.textMuted : c.text,
+                                    textDecoration: "none",
+                                    fontSize: "13px",
+                                    fontWeight: 600,
+                                    background: currentPage === totalPages ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.06)",
+                                    cursor: currentPage === totalPages ? "not-allowed" : "pointer",
+                                    pointerEvents: currentPage === totalPages ? "none" : "auto",
+                                }}
+                            >
+                                Next
+                            </Link>
+                        </div>
+                    </div>
+                )}
             </div>
 
             <style>{`
@@ -328,4 +458,42 @@ export default async function TasksPage() {
       `}</style>
         </div>
     );
+}
+
+function buildPageHref(searchTerm, pageNumber) {
+    const params = new URLSearchParams();
+
+    if (searchTerm) {
+        params.set("search", searchTerm);
+    }
+
+    params.set("page", String(pageNumber));
+
+    return `/dashboard/tasks?${params.toString()}`;
+}
+
+function getVisiblePages(totalPages, currentPage) {
+    if (totalPages <= 5) {
+        return Array.from({ length: totalPages }, (_, index) => index + 1);
+    }
+
+    const pages = [];
+    const visibleStart = Math.max(1, currentPage - 1);
+    const visibleEnd = Math.min(totalPages, currentPage + 1);
+
+    if (visibleStart > 1) {
+        pages.push(1, "ellipsis");
+    } else {
+        pages.push(1);
+    }
+
+    for (let pageNumber = visibleStart; pageNumber <= visibleEnd; pageNumber += 1) {
+        pages.push(pageNumber);
+    }
+
+    if (visibleEnd < totalPages) {
+        pages.push("ellipsis", totalPages);
+    }
+
+    return pages.filter((pageNumber, index, array) => array.indexOf(pageNumber) === index);
 }

@@ -26,13 +26,13 @@ const iconMap = {
 };
 
 const colors = {
-    bg: "linear-gradient(180deg, #14141f, #0d0d16)",
-    border: "rgba(255,255,255,0.07)",
-    textPrimary: "#f3f4f6",
-    textSecondary: "#8b8d98",
-    textMuted: "#52545f",
+    bg: "var(--app-surface)",
+    border: "var(--app-border)",
+    textPrimary: "var(--app-text)",
+    textSecondary: "var(--app-text-secondary)",
+    textMuted: "var(--app-text-muted)",
     activeBg: "linear-gradient(135deg, #7c3aed, #2563eb)",
-    hoverBg: "rgba(255,255,255,0.05)",
+    hoverBg: "color-mix(in srgb, var(--accent-from) 12%, transparent)",
 };
 
 export default function Sidebar({ role = "employee" }) {

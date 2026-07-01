@@ -1,4 +1,5 @@
 import { logoutUser } from "@/actions/authActions";
+import ThemeToggle from "@/components/ThemeToggle";
 import {
     User,
     Lock,
@@ -14,13 +15,13 @@ import {
 // Tailwind build can't silently drop the design again.
 
 const colors = {
-    bg: "#0a0a12",
-    card: "#14141f",
-    cardHover: "#191926",
-    border: "rgba(255,255,255,0.07)",
-    textPrimary: "#f3f4f6",
-    textSecondary: "#9195a3",
-    textMuted: "#5b5e6b",
+    bg: "var(--app-bg)",
+    card: "var(--app-surface)",
+    cardHover: "color-mix(in srgb, var(--app-surface) 90%, white 10%)",
+    border: "var(--app-border)",
+    textPrimary: "var(--app-text)",
+    textSecondary: "var(--app-text-secondary)",
+    textMuted: "var(--app-text-muted)",
     accentText: "#c4b5fd",
 };
 
@@ -148,7 +149,7 @@ export default function SettingsPage() {
                                     Sign Out
                                 </h2>
                                 <p style={{ fontSize: "13px", color: colors.textSecondary, marginTop: "4px", textAlign: "left" }}>
-                                    You'll be returned to the login screen on this device.
+                                    You&apos;ll be returned to the login screen on this device.
                                 </p>
                             </div>
                         </div>
@@ -249,30 +250,3 @@ function SettingRow({ icon, iconStyle, title, description, trailing, last }) {
     );
 }
 
-function ThemeToggle() {
-    return (
-        <div
-            style={{
-                width: "44px",
-                height: "26px",
-                borderRadius: "999px",
-                background: "rgba(255,255,255,0.08)",
-                display: "flex",
-                alignItems: "center",
-                padding: "3px",
-                cursor: "pointer",
-            }}
-        >
-            <div
-                style={{
-                    width: "20px",
-                    height: "20px",
-                    borderRadius: "999px",
-                    background: "linear-gradient(135deg, #8b5cf6, #6366f1)",
-                    marginLeft: "auto",
-                    boxShadow: "0 2px 6px rgba(139,92,246,0.5)",
-                }}
-            />
-        </div>
-    );
-}

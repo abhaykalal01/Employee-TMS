@@ -2,15 +2,15 @@ import { getCurrentUser } from "@/lib/getCurrentUser";
 import { User, Mail, ShieldCheck, BadgeCheck, Clock } from "lucide-react";
 
 const c = {
-    bg: "#0a0a12",
-    surface: "#13131e",
-    field: "#1b1b29",
-    border: "rgba(255,255,255,0.08)",
-    text: "#f3f4f6",
-    textSecondary: "#9295a3",
-    textMuted: "#54565f",
-    accentFrom: "#7c3aed",
-    accentTo: "#2563eb",
+    bg: "var(--app-bg)",
+    surface: "var(--app-surface)",
+    field: "color-mix(in srgb, var(--app-surface) 94%, var(--app-bg) 6%)",
+    border: "var(--app-border)",
+    text: "var(--app-text)",
+    textSecondary: "var(--app-text-secondary)",
+    textMuted: "var(--app-text-muted)",
+    accentFrom: "var(--accent-from)",
+    accentTo: "var(--accent-to)",
 };
 
 const roleTone = {
