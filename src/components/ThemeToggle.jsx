@@ -1,15 +1,19 @@
 "use client";
 
+import { memo, useCallback } from "react";
 import { useTheme } from "@/components/ThemeProvider";
 import { Moon, Sun } from "lucide-react";
 
-export default function ThemeToggle() {
+const ThemeToggle = memo(function ThemeToggle() {
     const { theme, setTheme } = useTheme();
+    const toggleTheme = useCallback(() => {
+        setTheme((current) => (current === "dark" ? "light" : "dark"));
+    }, [setTheme]);
 
     return (
         <button
             type="button"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            onClick={toggleTheme}
             aria-label="Toggle theme"
             style={{
                 display: "inline-flex",
@@ -28,4 +32,6 @@ export default function ThemeToggle() {
             {theme === "dark" ? <Moon size={18} /> : <Sun size={18} />}
         </button>
     );
-}
+});
+
+export default ThemeToggle;

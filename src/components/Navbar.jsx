@@ -1,13 +1,15 @@
 ﻿"use client";
 
-import { memo } from "react";
+import { memo, useCallback } from "react";
 import Link from "next/link";
+import ThemeToggle from "@/components/ThemeToggle";
+import NotificationBell from "@/components/NotificationBell";
 
-function Navbar() {
-    const openSidebar = () => {
+const Navbar = memo(function Navbar() {
+    const openSidebar = useCallback(() => {
         if (typeof window === "undefined") return;
         window.dispatchEvent(new CustomEvent("sidebar-toggle"));
-    };
+    }, []);
 
     return (
         <nav
@@ -30,9 +32,11 @@ function Navbar() {
                     </div>
                 </Link>
 
-                <div className="hidden items-center gap-8 md:flex">
+                <div className="hidden items-center gap-4 md:flex">
                     <Link href="/" className="text-sm font-medium" style={{ color: "var(--app-text-secondary)" }}>Home</Link>
                     <Link href="/dashboard" className="text-sm font-medium" style={{ color: "var(--app-text-secondary)" }}>Dashboard</Link>
+                    <NotificationBell />
+                    <ThemeToggle />
                     <Link
                         href="/login"
                         className="rounded-full border px-4 py-2 text-sm font-semibold text-white"
@@ -47,7 +51,9 @@ function Navbar() {
                     </Link>
                 </div>
 
-                <div className="md:hidden">
+                <div className="flex items-center gap-2 md:hidden">
+                    <NotificationBell />
+                    <ThemeToggle />
                     <button
                         aria-label="Open sidebar"
                         onClick={openSidebar}
@@ -64,6 +70,6 @@ function Navbar() {
             </div>
         </nav>
     );
-}
+});
 
-export default memo(Navbar);
+export default Navbar;

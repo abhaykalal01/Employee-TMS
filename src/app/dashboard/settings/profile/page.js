@@ -156,7 +156,7 @@ export default async function ProfilePage() {
 
 function DetailRow({ icon: Icon, label, value }) {
     return (
-        <div style={{ background: "#13131e", padding: "18px 24px" }}>
+        <div style={{ background: "var(--app-surface)", padding: "18px 24px" }}>
             <div
                 style={{
                     display: "flex",
@@ -165,14 +165,14 @@ function DetailRow({ icon: Icon, label, value }) {
                     fontSize: "11px",
                     fontWeight: 700,
                     letterSpacing: "0.06em",
-                    color: "#54565f",
+                    color: "var(--app-text-muted)",
                     textTransform: "uppercase",
                     marginBottom: "8px",
                 }}
             >
                 <Icon size={12} /> {label}
             </div>
-            <p style={{ fontSize: "14px", fontWeight: 600, color: "#f3f4f6", margin: 0, wordBreak: "break-word" }}>
+            <p style={{ fontSize: "14px", fontWeight: 600, color: "var(--app-text)", margin: 0, wordBreak: "break-word" }}>
                 {value}
             </p>
         </div>

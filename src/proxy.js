@@ -1,3 +1,5 @@
+// Next.js 16 Proxy Configuration (formerly middleware.js)
+// This file handles authentication and authorization routing
 import { NextResponse } from "next/server";
 import { getRoleFromToken } from "@/lib/jwt";
 
@@ -34,7 +36,8 @@ function isEmployeeBlockedFromTasks(pathname) {
     );
 }
 
-export function middleware(request) {
+// Next.js 16 requires "proxy" export name instead of "middleware"
+export function proxy(request) {
     const token = request.cookies.get("token")?.value;
     const { pathname } = request.nextUrl;
 

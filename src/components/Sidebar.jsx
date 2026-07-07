@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import {
     LayoutDashboard,
@@ -35,7 +35,7 @@ const colors = {
     hoverBg: "color-mix(in srgb, var(--accent-from) 12%, transparent)",
 };
 
-export default function Sidebar({ role = "employee" }) {
+const Sidebar = memo(function Sidebar({ role = "employee" }) {
     const pathname = usePathname();
     const [isOpen, setIsOpen] = useState(false);
     const navItems = useMemo(() => getSidebarItems(role), [role]);
@@ -169,4 +169,6 @@ export default function Sidebar({ role = "employee" }) {
             )}
         </>
     );
-}
+});
+
+export default Sidebar;

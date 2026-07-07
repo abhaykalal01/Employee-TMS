@@ -6,6 +6,7 @@ export function getSidebarItems(role) {
             { href: "/dashboard/tasks/create", label: "Create Task", icon: "PlusCircle" },
             { href: "/dashboard/employees", label: "Employees", icon: "Users" },
             { href: "/dashboard/reports", label: "Reports", icon: "BarChart3" },
+            { href: "/dashboard/settings/email-test", label: "Email Test", icon: "Mail" },
             { href: "/dashboard/settings/profile", label: "Profile", icon: "User" },
             { href: "/dashboard/settings", label: "Settings", icon: "Settings" },
         ];

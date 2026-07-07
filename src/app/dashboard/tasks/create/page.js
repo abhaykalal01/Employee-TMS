@@ -6,15 +6,15 @@ import { redirect } from "next/navigation";
 import { ClipboardList, Flag, ListTodo, User } from "lucide-react";
 
 const c = {
-    bg: "#0a0a12",
-    surface: "#13131e",
-    field: "#1b1b29",
-    border: "rgba(255,255,255,0.08)",
-    text: "#f3f4f6",
-    textSecondary: "#9295a3",
-    textMuted: "#54565f",
-    accentFrom: "#7c3aed",
-    accentTo: "#2563eb",
+    bg: "var(--app-bg)",
+    surface: "var(--app-surface)",
+    field: "var(--surface)",
+    border: "var(--app-border)",
+    text: "var(--app-text)",
+    textSecondary: "var(--app-text-secondary)",
+    textMuted: "var(--app-text-muted)",
+    accentFrom: "var(--accent-from)",
+    accentTo: "var(--accent-to)",
 };
 
 export default async function CreateTaskPage() {
@@ -88,7 +88,7 @@ export default async function CreateTaskPage() {
                                     fontSize: "12px",
                                     fontWeight: 700,
                                     letterSpacing: "0.04em",
-                                    color: "#9ca3af",
+                                    color: "var(--app-text-secondary)",
                                     textTransform: "uppercase",
                                     marginBottom: "8px",
                                 }}
@@ -133,7 +133,7 @@ export default async function CreateTaskPage() {
                                     fontSize: "12px",
                                     fontWeight: 700,
                                     letterSpacing: "0.04em",
-                                    color: "#9ca3af",
+                                    color: "var(--app-text-secondary)",
                                     textTransform: "uppercase",
                                     marginBottom: "8px",
                                 }}
@@ -166,7 +166,7 @@ export default async function CreateTaskPage() {
                     <div
                         style={{
                             borderTop: `1px solid ${c.border}`,
-                            background: "#0f0f18",
+                            background: "var(--surface-strong)",
                             padding: "16px 24px",
                             display: "flex",
                             justifyContent: "flex-end",
@@ -192,7 +192,7 @@ function Field({ icon, label, name, type, placeholder, required, hint }) {
                     fontSize: "12px",
                     fontWeight: 700,
                     letterSpacing: "0.04em",
-                    color: "#9ca3af",
+                    color: "var(--app-text-secondary)",
                     textTransform: "uppercase",
                     marginBottom: "8px",
                 }}
@@ -207,18 +207,18 @@ function Field({ icon, label, name, type, placeholder, required, hint }) {
                 required={required}
                 style={{
                     width: "100%",
-                    background: "#1b1b29",
-                    border: "1px solid rgba(255,255,255,0.08)",
+                    background: "var(--app-surface)",
+                    border: "1px solid var(--app-border)",
                     borderRadius: "10px",
                     padding: "12px 14px",
                     fontSize: "14px",
-                    color: "#f3f4f6",
+                    color: "var(--app-text)",
                     outline: "none",
                     boxSizing: "border-box",
                 }}
             />
             {hint && (
-                <p style={{ fontSize: "12px", color: "#54565f", marginTop: "6px" }}>{hint}</p>
+                <p style={{ fontSize: "12px", color: "var(--app-text-muted)", marginTop: "6px" }}>{hint}</p>
             )}
         </div>
     );

@@ -1,6 +1,28 @@
+"use client";
+
 import { loginUser } from "@/actions/authActions";
+import Link from "next/link";
+import { useActionState } from "react";
+import { useEffect, useRef } from "react";
 
 export default function LoginPage() {
+    const [state, formAction] = useActionState(loginUser, null);
+    const formRef = useRef(null);
+
+    // Clear form errors on successful login (just before redirect)
+    useEffect(() => {
+        if (state?.error) {
+            // Focus the field with error
+            const fieldName = state.field === "email" ? "email" : state.field === "password" ? "password" : null;
+            if (fieldName && formRef.current) {
+                const field = formRef.current.querySelector(`[name="${fieldName}"]`);
+                if (field) {
+                    field.focus();
+                }
+            }
+        }
+    }, [state]);
+
     return (
         <div className="flex min-h-screen items-center justify-center px-4" style={{ background: "var(--app-bg)" }}>
             <div
@@ -11,7 +33,7 @@ export default function LoginPage() {
                     Login
                 </h2>
 
-                <form action={loginUser} className="space-y-5">
+                <form ref={formRef} action={formAction} className="space-y-5">
                     <div>
                         <label className="mb-2 block font-medium" style={{ color: "var(--app-text-secondary)" }}>
                             Email
@@ -21,13 +43,23 @@ export default function LoginPage() {
                             name="email"
                             type="email"
                             placeholder="Enter your email"
+                            required
                             className="w-full rounded-lg border px-4 py-3 outline-none focus:ring-2"
                             style={{
                                 background: "color-mix(in srgb, var(--app-surface) 92%, var(--app-bg) 8%)",
-                                borderColor: "var(--app-border)",
+                                borderColor: state?.field === "email" ? "#ef4444" : "var(--app-border)",
                                 color: "var(--app-text)",
                             }}
                         />
+                        {state?.field === "email" && (
+                            <p
+                                className="mt-2 text-sm"
+                                style={{ color: "#ef4444" }}
+                                role="alert"
+                            >
+                                {state.error}
+                            </p>
+                        )}
                     </div>
 
                     <div>
@@ -39,14 +71,44 @@ export default function LoginPage() {
                             name="password"
                             type="password"
                             placeholder="Enter your password"
+                            required
                             className="w-full rounded-lg border px-4 py-3 outline-none focus:ring-2"
                             style={{
                                 background: "color-mix(in srgb, var(--app-surface) 92%, var(--app-bg) 8%)",
-                                borderColor: "var(--app-border)",
+                                borderColor: state?.field === "password" ? "#ef4444" : "var(--app-border)",
                                 color: "var(--app-text)",
                             }}
                         />
+                        {state?.field === "password" && (
+                            <p
+                                className="mt-2 text-sm"
+                                style={{ color: "#ef4444" }}
+                                role="alert"
+                            >
+                                {state.error}
+                            </p>
+                        )}
+
+                        <div className="flex justify-end mt-2">
+                            <Link href="/forgot-password" style={{ color: "#c4b5fd" }} className="text-xs font-semibold hover:underline">
+                                Forgot password?
+                            </Link>
+                        </div>
                     </div>
+
+                    {state?.field === "general" && (
+                        <div
+                            className="rounded-lg px-4 py-3 text-sm"
+                            style={{
+                                background: "rgba(239, 68, 68, 0.1)",
+                                border: "1px solid rgba(239, 68, 68, 0.3)",
+                                color: "#ef4444",
+                            }}
+                            role="alert"
+                        >
+                            {state.error}
+                        </div>
+                    )}
 
                     <button
                         type="submit"

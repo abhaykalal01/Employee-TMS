@@ -7,6 +7,8 @@ import { connectDB } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth";
+import { queueEmail } from "@/lib/mail";
+import { welcomeEmailTemplate, roleChangedEmailTemplate } from "@/lib/emailTemplates";
 
 export async function createEmployee(formData) {
     await requireAdmin();
@@ -37,6 +39,15 @@ export async function createEmployee(formData) {
         email,
         password: hashedPassword,
         role,
+    });
+
+    queueEmail({
+        to: email,
+        ...welcomeEmailTemplate({
+            name,
+            email,
+            tempPassword: password,
+        }),
     });
 
     revalidatePath("/dashboard/employees");
@@ -76,6 +87,11 @@ export async function updateEmployee(formData) {
             throw new Error("An account with this email already exists.");
         }
 
+        const previousUser = await User.findById(objectId);
+        if (!previousUser) {
+            throw new Error("Employee not found.");
+        }
+
         const updatedUser = await User.findByIdAndUpdate(
             objectId,
             { name, email, role },
@@ -84,6 +100,18 @@ export async function updateEmployee(formData) {
 
         if (!updatedUser) {
             throw new Error("Employee not found.");
+        }
+
+        if (previousUser.role !== updatedUser.role) {
+            queueEmail({
+                to: updatedUser.email,
+                ...roleChangedEmailTemplate({
+                    name: updatedUser.name,
+                    oldRole: previousUser.role,
+                    newRole: updatedUser.role,
+                    actorName: "Admin",
+                }),
+            });
         }
 
         revalidatePath("/dashboard/employees");
