@@ -28,11 +28,38 @@ function initSocketServer(httpServer) {
     });
 
     io.on("connection", (socket) => {
+        // User authentication
         socket.on("authenticate", ({ userId }) => {
             if (!userId) {
                 return;
             }
+            socket.userId = userId;
             socket.join(`user:${userId}`);
+        });
+
+        // Join task discussion room
+        socket.on("join-task", ({ taskId, userId }) => {
+            if (!taskId || !userId) {
+                return;
+            }
+            socket.join(`task:${taskId}`);
+        });
+
+        // Leave task discussion room
+        socket.on("leave-task", ({ taskId }) => {
+            if (!taskId) {
+                return;
+            }
+            socket.leave(`task:${taskId}`);
+        });
+
+        // Mark message as read
+        socket.on("mark-message-read", ({ taskId, commentId, userId }) => {
+            if (!taskId || !commentId || !userId) {
+                return;
+            }
+            // Broadcast read receipt to task room
+            socket.to(`task:${taskId}`).emit("message-read", { commentId, userId });
         });
     });
 
@@ -51,8 +78,35 @@ function emitNotification({ userId, notification }) {
     io.to(`user:${userId}`).emit("notification:new", notification);
 }
 
+function emitTaskComment({ taskId, comment }) {
+    if (!io) {
+        return;
+    }
+
+    io.to(`task:${taskId}`).emit("task-comment:new", comment);
+}
+
+function emitCommentDeleted({ taskId, commentId }) {
+    if (!io) {
+        return;
+    }
+
+    io.to(`task:${taskId}`).emit("task-comment:deleted", { commentId });
+}
+
+function emitMessageRead({ taskId, commentId, userId }) {
+    if (!io) {
+        return;
+    }
+
+    io.to(`task:${taskId}`).emit("message-read", { commentId, userId });
+}
+
 module.exports = {
     initSocketServer,
     getSocketServer,
     emitNotification,
+    emitTaskComment,
+    emitCommentDeleted,
+    emitMessageRead,
 };
