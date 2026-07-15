@@ -83,6 +83,45 @@ export async function getTasksForUser(user) {
     return tasks.map(serializeTask);
 }
 
+export async function getTasksForUserPaginated({ user, page = 1, limit = 10, statusFilter = "" } = {}) {
+    await connectDB();
+
+    const normalizedPage = Math.max(1, Number(page) || 1);
+    const normalizedLimit = Math.max(1, Number(limit) || 10);
+
+    const query =
+        user.role === "admin"
+            ? {}
+            : { assignedTo: user._id };
+
+    // Add status filter if provided
+    if (statusFilter && ["Pending", "In Progress", "Completed"].includes(statusFilter)) {
+        query.status = statusFilter;
+    }
+
+    const skip = (normalizedPage - 1) * normalizedLimit;
+
+    const [tasks, total] = await Promise.all([
+        Task.find(query)
+            .populate("assignedTo", "name email")
+            .lean()
+            .select("_id title status assignedTo createdAt updatedAt")
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(normalizedLimit),
+        Task.countDocuments(query),
+    ]);
+
+    return {
+        tasks: tasks.map(serializeTask),
+        total,
+        totalPages: Math.max(1, Math.ceil(total / normalizedLimit)),
+        currentPage: normalizedPage,
+        limit: normalizedLimit,
+        statusFilter,
+    };
+}
+
 export async function getTaskById(id) {
     await connectDB();
 

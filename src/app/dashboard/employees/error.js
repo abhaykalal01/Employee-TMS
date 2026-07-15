@@ -10,14 +10,13 @@ const c = {
     border: "var(--app-border)",
     text: "var(--app-text)",
     textSecondary: "var(--app-text-secondary)",
-    textMuted: "var(--app-text-muted)",
     accentFrom: "var(--accent-from)",
     accentTo: "var(--accent-to)",
 };
 
-export default function TasksError({ error, reset }) {
+export default function EmployeesError({ error, reset }) {
     useEffect(() => {
-        console.error("Tasks page error:", error);
+        console.error("Employees page error:", error);
     }, [error]);
 
     return (
@@ -56,7 +55,7 @@ export default function TasksError({ error, reset }) {
                             margin: "0 0 8px",
                         }}
                     >
-                        Something went wrong
+                        Failed to load employees
                     </h2>
 
                     <p
@@ -69,7 +68,7 @@ export default function TasksError({ error, reset }) {
                             marginRight: "auto",
                         }}
                     >
-                        We encountered an error while loading the tasks page. This might be a temporary issue.
+                        We couldn&apos;t load the employee directory. Please try again or check back later.
                     </p>
 
                     {process.env.NODE_ENV === "development" && error?.message && (
